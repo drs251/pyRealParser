@@ -106,14 +106,12 @@ class TestTune(TestCase):
         test_string = '*A[T43Eb^7XyQKcl LZDh7XyQ|G7b9XyQ|C-7XyQKcl LZBb-7XyQ|Eb7XyQ]'
         assert (4, 3) == Tune._get_time_signature(test_string)
 
-
-class TestParse_ireal_url(TestCase):
     def test_parse_ireal_url(self):
-        from pyRealParser.pyRealParser import parse_ireal_url
+        from pyRealParser.pyRealParser import Tune
         test_string = 'irealb://Test=McTest%20Testy==Up%20Tempo%20Swing=Eb==1r34LbKcu7X7bB%7C4Eb%5E7FZL5%237C%209bB' + \
                       '%7CQy1X1-F%7CQyX7-C%7CQyX-7XyQ4TA%2A%7Bb7C%7CQ7%20B7L7-G%7CQyX7oA%7CQyX%5E7bAZL5b7A%207-bBZ%' + \
                       '2FBbXy-C%7CQy%20QyXQY%7CF-77bB%207-FZL7bG%207G-1N%7CQyX%2C7bB%7CQyX%2C%20%7DXy%7CQyX9EZL6-b6' + \
                       'XyQ%7Cr%20ZL%20%7Cr%20ZL%2C7bZEL7-bBB%2A%5B%5D%20%20lcK%20LZBbE2NZL%20dr3%20b%5E7LZ%2ED<%2C7' + \
                       'FZLxZLxZL%5E7bAl%7C%2C7bE%2C7-bBsC%2E%20alAZL7bEnd%2E>LZBb7sus%2CLZBb7%20%5DXyQXyQ%20%20Y%7C' + \
                       'N3Eb6XyQ%7CBb7XyQZ%20==0=0==='
-        str(parse_ireal_url(test_string))
+        str(Tune.parse_ireal_url(test_string))

@@ -2,14 +2,36 @@ import re
 import urllib.parse
 import itertools
 
+__license__ = 'MIT'
+__docformat__ = 'reStructuredText'
 
-class Tune:
-    chords_prefix = """1r34LbKcu7"""
+
+class Tune(object):
+    """Represents the chords in a song, with functionality to import the iReal format.
+
+    :ivar chord_string: A single string that has all chords of the tune, with bar lines, repeat markers, endings, codas etc.
+    :ivar measures_as_strings: A list, for which every element corresponds to a single bar, containing the chords in string form. Repeats, codas etc. have been flattened.
+    :ivar title: The title
+    :ivar composer: The composer
+    :ivar style: The style (e.g. 'Swing', 'Bossa', 'Blues' etc.)
+    :ivar key: The key (e.g. 'A', 'F#' etc)
+    :ivar transpose: How many semitones to transpose
+    :ivar comp_style: Accompaniment style (usually empty)
+    :ivar bpm: Tempo in BPM (usually empty)
+    :ivar repeats: How many repeats (usually empty)
+    :ivar time_signature: Time signature as a tuple (e.g. (3,4), (4, 4), (5, 8) etc.)
+
+
+    Notice, that some of these meta-data fields might
+    be empty, depending on the input url.
+    """
+
+    _chords_prefix = """1r34LbKcu7"""
 
     @classmethod
     def _obfusc50(cls, block):
-        """
-        Unscrambles blocks of 50 by character substitution
+        """Unscrambles blocks of 50 by character substitution
+
         :param block: A string of 50 characters
         :return: An unscrambled string
         """
@@ -26,8 +48,7 @@ class Tune:
 
     @classmethod
     def _unscramble_chord_string(cls, scrambled_string):
-        """
-        Unscrambles a single song in iReal's crazy format (Kudos to ironss and pianosnake for
+        """Unscrambles a single song in iReal's crazy format (Kudos to ironss and pianosnake for
         figuring this out!)
         :param scrambled_string: A scrambled chord string, corresponding to one tune
         :return: An unscrambled chord string.
@@ -45,8 +66,7 @@ class Tune:
 
     @classmethod
     def _cleanup_chord_string(cls, chord_string):
-        """
-        Removes excessive whitespace, unnecessary stuff, empty measures etc. and return a nice,
+        """Removes excessive whitespace, unnecessary stuff, empty measures etc. and return a nice,
         readable string
         :param chord_string: unscrambled chords in string form
         :return: cleaned up chord string
@@ -78,13 +98,12 @@ class Tune:
 
     @classmethod
     def _remove_annotations(cls, chord_string):
-        """
-        Removes comments, section markers, alternative chords, time signatures etc.
+        """Removes comments, section markers, alternative chords, time signatures etc.
         :param chord_string: A chord string
         :return: A cleaned up chord string
         """
         # unify symbol for new measure to |
-        chord_string = re.sub(r'\[|\]', '|', chord_string)
+        chord_string = re.sub(r'[\[\]]', '|', chord_string)
         # remove empty measures
         chord_string = re.sub(r'\|\s*\|', '|', chord_string)
         # remove comments
@@ -109,8 +128,7 @@ class Tune:
 
     @classmethod
     def _fill_long_repeats(cls, chord_string):
-        """
-        Replaces long repeats with multiple endings with the appropriate chords
+        """Replaces long repeats with multiple endings with the appropriate chords
         :param chord_string: A chord string
         :return: A chord string with filled repeats
         """
@@ -145,8 +163,7 @@ class Tune:
 
     @classmethod
     def _fill_codas(cls, chord_string):
-        """
-        Flatten D.C. al Coda and D.S. al Coda
+        """Flatten D.C. al Coda and D.S. al Coda
         :param chord_string: A chord string
         :return: A chord string with filled D.C. or D.S.
         """
@@ -175,8 +192,7 @@ class Tune:
 
     @classmethod
     def _fill_single_double_repeats(cls, measures):
-        """
-        Replaces one- and two-measure repeat symbols with the appropriate chords
+        """Replaces one- and two-measure repeat symbols with the appropriate chords
         :param measures: A list of measures (as strings)
         :return: A list of measures with filled repeats
         """
@@ -194,8 +210,7 @@ class Tune:
 
     @classmethod
     def _fill_slashes(cls, measures):
-        """
-        Replace slash symbols (encoded as 'p') with the previous chord
+        """Replace slash symbols (encoded as 'p') with the previous chord
         :param measures: List of measures (as strings)
         :return: A list of measures with filled slashes
         """
@@ -215,9 +230,8 @@ class Tune:
 
     @classmethod
     def _get_measures(cls, chord_string):
-        """
-        Splits a chord string into a list of measures, where empty measures are discarded.
-        Handles repeats as well.
+        """Splits a chord string into a list of measures, where empty measures are discarded.
+        Cleans up the chord string, removes annotations, and handles repeats & codas as well.
         :param chord_string: A chord string
         :return: A list of measures, with the contents of every measure as a string
         """
@@ -234,8 +248,7 @@ class Tune:
 
     @classmethod
     def _get_time_signature(cls, chord_string):
-        """
-        Get the time signature form a chord string
+        """Get the time signature form a chord string
         :param chord_string: A chord string containing a time signature
         :return: Time signature as a tuple, e.g. (3, 4)
         """
@@ -248,9 +261,9 @@ class Tune:
             return 4, 4
 
     def __init__(self, tune_string):
-        """
-        Make a new Tune object from a scrambled string extracted from a url, corresponding to a
-        single tune
+        """Make a new Tune object from a scrambled string extracted from a url, corresponding to a
+        single tune. Note: This function will *not* accept a full iReal url, e.g. a string starting with *ireal://* -
+        use ``parse_ireal_url`` for this.
         :param tune_string: Scrambled string for a single tune
         """
         parts = re.split(r"=+", tune_string)
@@ -260,10 +273,10 @@ class Tune:
         self.key = parts[3]
         offset = 0
         self.transpose = None
-        if parts[4].index(self.chords_prefix) != 0:
+        if parts[4].index(self._chords_prefix) != 0:
             offset = 1
             self.transpose = int(parts[4])
-        chords_scrambled = parts[4 + offset].split(self.chords_prefix)[1]
+        chords_scrambled = parts[4 + offset].split(self._chords_prefix)[1]
         self.comp_style = len(parts) > 5 + offset and parts[5 + offset] or None
         self.bpm = len(parts) > 6 + offset and parts[6 + offset] or None
         self.repeats = len(parts) > 7 + offset and parts[7 + offset] or None
@@ -274,8 +287,7 @@ class Tune:
         self.measures_as_strings = self._get_measures(self.chord_string)
 
     def __repr__(self):
-        """
-        A nice representation containing the meta-data and the chords
+        """A nice representation containing the meta-data and the chords
         :return: String representation
         """
         result = super().__repr__() + '\n'
@@ -297,34 +309,31 @@ class Tune:
             result += '|\n'
         return result
 
-    def as_chord_objects(self):
-        """
-        Get a list of chord objects in this tune
-        :return: A list of chord objects
-        """
-        pass
+    @staticmethod
+    def parse_ireal_url(url):
+        """Parses iReal urls into human- and machine-readable formats
 
+        :param url: A url containing one or more tunes
+        :return: A list of Tune objects
 
-def parse_ireal_url(url):
-    """
-    Parses iReal urls into human- and machine-readable formats
-    :param url: A url containing one or more tunes
-    :return: A list of Tune objects
-    """
-    url = urllib.parse.unquote(url)
-    match = re.match(r'irealb://([^"]+)', url)
-    if match is None:
-        raise RuntimeError('Provided string is not a valid iReal url!')
-    # split url into individual songs along ===
-    songs = re.split("===", match.group(1))
-    tunes = []
-    for song in songs:
-        if song != '':
-            try:
-                tune = Tune(song)
-                tunes.append(tune)
-                print('Parsed {}'.format(tune.title))
-            except Exception as err:
-                print('Could not import song', song)
-                print(str(err))
-    return tunes
+        Example:
+
+        ``list_of_tunes = Tune.parse_ireal_url('irealb://Example%20Song=Composer...)```
+        """
+        url = urllib.parse.unquote(url)
+        match = re.match(r'irealb://([^"]+)', url)
+        if match is None:
+            raise RuntimeError('Provided string is not a valid iReal url!')
+        # split url into individual songs along ===
+        songs = re.split("===", match.group(1))
+        tunes = []
+        for song in songs:
+            if song != '':
+                try:
+                    tune = Tune(song)
+                    tunes.append(tune)
+                    print('Parsed {}'.format(tune.title))
+                except Exception as err:
+                    print('Could not import song', song)
+                    print(str(err))
+        return tunes
