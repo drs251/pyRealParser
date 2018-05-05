@@ -56,3 +56,8 @@ Notice, that some of these meta-data fields might be empty, depending on the inp
 As can be seen from the above example, `Tune` objects are designed to have a nice textual representation in Jupyter notebooks, but can be used outside of a notebook perfectly well.
 
 For more documentation, please read the code.
+
+Contributions are welcome, please submit a PR.
+
+## Acknowledgements
+Kudos to [@pianosnake](https://github.com/pianosnake/ireal-reader) and [@ironss](https://github.com/ironss/accompaniser) for figuring out the iReal url format!
