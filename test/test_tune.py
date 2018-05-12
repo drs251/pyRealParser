@@ -1,3 +1,5 @@
+# recommended test runner: py.test
+
 from unittest import TestCase
 
 
