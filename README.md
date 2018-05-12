@@ -21,7 +21,7 @@ Repeats: None
 Time signature: 4/4
 
 Chord string:
-*A{T44D- |Eh7 A7b9|G-7 C7|F^7 |Eh7 A7b9|D- |Eh7 |A7b9 |D-7 |D-6 |D-7 |D-6 }*B[F^7 |G-7 C7|F^7 |Eh7 A7b9 ]*C[D- |Eh7 A7b9|G-7 C7|F^7 |Eh7 A7b9|D- |C7sus |x |C7sus |x |x |x |C7sus A7b9|D- <As played by Miles Davis>|x
+*A{T44D- |Eh7 A7b9|G-7 C7|F^7 |Eh7 A7b9|D- |Eh7 |A7b9 |D-7 |D-6 |D-7 |D-6 }*B[F^7 |G-7 C7|F^7 |Eh7 A7b9 ]*C[D- |Eh7 A7b9|G-7 C7|F^7 |Eh7 A7b9|D- |C7sus |x |C7sus |x |x |x |C7sus A7b9|D- |x
 
 Flattened measures:
 | D-          | Eh7A7b9     | G-7C7       | F^7         |
@@ -44,7 +44,7 @@ Flattened measures:
 ```python
 >print(my_tune.chord_string)
 
-*A{T44D- |Eh7 A7b9|G-7 C7|F^7 |Eh7 A7b9|D- |Eh7 |A7b9 |D-7 |D-6 |D-7 |D-6 }*B[F^7 |G-7 C7|F^7 |Eh7 A7b9 ]*C[D- |Eh7 A7b9|G-7 C7|F^7 |Eh7 A7b9|D- |C7sus |x |C7sus |x |x |x |C7sus A7b9|D- <As played by Miles Davis>|x
+*A{T44D- |Eh7 A7b9|G-7 C7|F^7 |Eh7 A7b9|D- |Eh7 |A7b9 |D-7 |D-6 |D-7 |D-6 }*B[F^7 |G-7 C7|F^7 |Eh7 A7b9 ]*C[D- |Eh7 A7b9|G-7 C7|F^7 |Eh7 A7b9|D- |C7sus |x |C7sus |x |x |x |C7sus A7b9|D- |x
 ```
 
 - `measures_as_strings`: A list, for which every element corresponds to a single bar, containing the chords in string form. Repeats, codas etc. have been flattened.

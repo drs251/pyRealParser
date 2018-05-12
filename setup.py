@@ -17,6 +17,5 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Operating System :: OS Independent",
         "Topic :: Artistic Software",
-        "Topic :: Multimedia :: Sound/Audio",
-        "Topic :: Music"]
+        "Topic :: Multimedia :: Sound/Audio"]
 )
