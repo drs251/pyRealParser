@@ -9,8 +9,10 @@ __docformat__ = 'reStructuredText'
 class Tune(object):
     """Represents the chords in a song, with functionality to import the iReal format.
 
-    :ivar chord_string: A single string that has all chords of the tune, with bar lines, repeat markers, endings, codas etc.
-    :ivar measures_as_strings: A list, for which every element corresponds to a single bar, containing the chords in string form. Repeats, codas etc. have been flattened.
+    :ivar chord_string: A single string that has all chords of the tune, with bar lines, repeat markers, endings,
+       codas etc.
+    :ivar measures_as_strings: A list, for which every element corresponds to a single bar, containing the chords in
+       string form. Repeats, codas etc. have been flattened.
     :ivar title: The title
     :ivar composer: The composer
     :ivar style: The style (e.g. 'Swing', 'Bossa', 'Blues' etc.)
@@ -27,6 +29,8 @@ class Tune(object):
     """
 
     _chords_prefix = """1r34LbKcu7"""
+
+    chord_regex = re.compile(r'(?<!/)([A-GNn][^A-GN/]*(?:/[A-GN][#b]?)?)')
 
     @classmethod
     def _obfusc50(cls, block):
@@ -110,8 +114,10 @@ class Tune(object):
         chord_string = re.sub(r'<.*?>', '', chord_string)
         # remove alternative chords
         chord_string = re.sub(r'\([^)]*\)', '', chord_string)
-        # remove unneeded single l and f (fermata)
-        chord_string = re.sub(r'[lf]', '', chord_string)
+        # remove unneeded single f (fermata)
+        chord_string = re.sub(r'f', '', chord_string)
+        # remove l unless it's part of an alt chord
+        chord_string = re.sub(r'(?<!a)l(?!t)', '', chord_string)
         # remove s (for 'small), unless it's part of a sus chord
         chord_string = re.sub(r'(?<!su)s(?!us)', '', chord_string)
         # remove section markers
@@ -141,16 +147,21 @@ class Tune(object):
             first_repeat = repeat_match.group(1)
             # first, get rid of the first repeat number and the curly braces
             first_repeat = re.sub(r'N\d', '', first_repeat)
-            new_chord_string = chord_string[:repeat_match.start()] + '|' + first_repeat + \
+            # add bar line after curly brace if required:
+            if re.match(r'\}\s*\|.*', chord_string[repeat_match.end()-1:]):
+                bar_line = ''
+            else:
+                bar_line = '|'
+            new_chord_string = chord_string[:repeat_match.start()] + '|' + first_repeat + bar_line + \
                                chord_string[repeat_match.end():]
 
             # remove the first repeat ending as well as segnos and codas from the saved repeat
             repeat = cls._remove_markers(re.search(r'([^N]+)N\d', repeat_match.group(1)).group(1))
             # find the next repeat ending markers and insert the repeated chords before them
             while True:
-                if re.search('\|\s*N(\d)', new_chord_string) is None:
+                if re.search(r'[|}]\s*N(\d)', new_chord_string) is None:
                     break
-                new_chord_string = re.sub('\|\s*N(\d)', '|' + repeat, new_chord_string)
+                new_chord_string = re.sub(r'\|\s*N(\d)', '|' + repeat, new_chord_string)
             return new_chord_string
         else:
             # it's only a simple repeat: easy!
@@ -214,18 +225,28 @@ class Tune(object):
         :param measures: List of measures (as strings)
         :return: A list of measures with filled slashes
         """
-        chord_regex = re.compile(r'(?<!/)([A-Gn][^A-G/]*(?:/[A-G][#b]?)?)')
         for i in range(1, len(measures)):
             while measures[i].find('p') != -1:
                 slash = measures[i].find('p')
                 if slash == 0:
-                    prev_chord = chord_regex.findall(measures[i - 1])[-1]
+                    prev_chord = cls.chord_regex.findall(measures[i - 1])[-1]
                     measures[i] = prev_chord + measures[i][1:]
                     measures[i] = re.sub(r'^(p+)', prev_chord, measures[i])
                 else:
-                    prev_chord = chord_regex.findall(measures[i][:slash])[-1]
+                    prev_chord = cls.chord_regex.findall(measures[i][:slash])[-1]
                     measures[i] = measures[i][:slash] + prev_chord + measures[i][slash + 1:]
+        return measures
 
+    @classmethod
+    def _add_space_between_chords(cls, measures):
+        """
+        Add a space between chords in the same measure
+        :param measures: List of measures as strings
+        :return: List of measures with added spaces
+        """
+        for i in range(len(measures)):
+            chords = cls.chord_regex.findall(measures[i])
+            measures[i] = ' '.join(chords)
         return measures
 
     @classmethod
@@ -243,6 +264,7 @@ class Tune(object):
         measures = [measure.replace(' ', '') for measure in measures if measure.strip() != '']
         measures = cls._fill_single_double_repeats(measures)
         measures = cls._fill_slashes(measures)
+        measures = cls._add_space_between_chords(measures)
 
         return measures
 
@@ -281,8 +303,8 @@ class Tune(object):
         self.bpm = len(parts) > 6 + offset and parts[6 + offset] or None
         self.repeats = len(parts) > 7 + offset and parts[7 + offset] or None
 
-        self.chord_string = self._unscramble_chord_string(chords_scrambled)
-        self.chord_string = self._cleanup_chord_string(self.chord_string)
+        self.raw_chord_string = self._unscramble_chord_string(chords_scrambled)
+        self.chord_string = self._cleanup_chord_string(self.raw_chord_string)
         self.time_signature = self._get_time_signature(self.chord_string)
         self.measures_as_strings = self._get_measures(self.chord_string)
 
