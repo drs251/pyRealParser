@@ -97,7 +97,6 @@ class Tune(object):
         chord_string = re.sub(r'\s+', ' ', chord_string)
         # remove trailing white-space
         chord_string = chord_string.rstrip()
-
         return chord_string
 
     @classmethod
@@ -124,7 +123,8 @@ class Tune(object):
         chord_string = re.sub(r'\*\w', '', chord_string)
         # remove time signatures
         chord_string = re.sub(r'T\d+', '', chord_string)
-
+        # remove the star that's sometimes after augmented chords
+        chord_string = re.sub(r'\+\*', '+', chord_string)
         return chord_string
 
     @classmethod
@@ -198,7 +198,6 @@ class Tune(object):
             new_chord_string = chord_string[:q2] + repeat + ' |' + coda
             new_chord_string = re.sub(r'[QS]', '', new_chord_string)
             return new_chord_string
-
         return chord_string
 
     @classmethod
@@ -212,11 +211,14 @@ class Tune(object):
             if measures[i] == 'x':
                 measures[i] = cls._remove_markers(measures[i - 1])
         # double repeats:
-        for i in range(2, len(measures) - 1):
+        i = 2
+        while i < len(measures):
             if measures[i] == 'r':
-                measures[i] = cls._remove_markers(measures[i - 2])
-                measures[i + 1] = cls._remove_markers(measures[i - 1])
-
+                first = cls._remove_markers(measures[i-2])
+                second = cls._remove_markers(measures[i-1])
+                measures = measures[:i] + [first, second] + measures[i+1:]
+                i += 1
+            i += 1
         return measures
 
     @classmethod
@@ -250,6 +252,17 @@ class Tune(object):
         return measures
 
     @classmethod
+    def _replace_no_chords(cls, measures):
+        """
+        Replace n and nn with N.C.
+        :param measures: List of measures as strings
+        :return: List of measures
+        """
+        for i in range(len(measures)):
+            measures[i] = measures[i].replace('nn', 'N.C.').replace('n', 'N.C.')
+        return measures
+
+    @classmethod
     def _get_measures(cls, chord_string):
         """Splits a chord string into a list of measures, where empty measures are discarded.
         Cleans up the chord string, removes annotations, and handles repeats & codas as well.
@@ -265,6 +278,7 @@ class Tune(object):
         measures = cls._fill_single_double_repeats(measures)
         measures = cls._fill_slashes(measures)
         measures = cls._add_space_between_chords(measures)
+        measures = cls._replace_no_chords(measures)
 
         return measures
 
